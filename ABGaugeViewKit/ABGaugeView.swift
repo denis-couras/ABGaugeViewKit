@@ -24,6 +24,8 @@ public class ABGaugeView: UIView {
         }
     }
     
+    @IBInspectable public var needleValueFromValue: CGFloat = 0
+    
     @IBInspectable public var applyShadow: Bool = true {
         didSet {
             shadowColor = applyShadow ? shadowColor : UIColor.clear
@@ -65,11 +67,18 @@ public class ABGaugeView: UIView {
     }
     
     // MARK:- Custom Methods
+    func deg2rad(_ number: CGFloat) -> CGFloat {
+        return number * .pi / 180
+    }
+    
     func drawGauge() {
+        
         layer.sublayers = []
-        drawSmartArc()
-        drawNeedle()
-        drawNeedleCircle()
+        
+        self.drawSmartArc()
+        self.drawNeedle()
+        self.drawNeedleCircle()
+        
     }
     
     func drawSmartArc() {
@@ -107,7 +116,7 @@ public class ABGaugeView: UIView {
         animation.fromValue = 1
         animation.toValue = 0.2
         animation.duration = 0.1
-        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionDefault)
+        animation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.default)
         animation.autoreverses = true
         animation.repeatCount = 3
         self.layer.add(animation, forKey: "opacity")
@@ -209,10 +218,13 @@ public class ABGaugeView: UIView {
         let thisRadians = (arcAngle * 100) * .pi/(1.8*100)
         let theD = (radians - thisRadians)/2
         firstAngle += theD
+        
         let needleValue = radian(for: self.needleValue) + firstAngle
-        animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: 0, toValue: needleValue*1.05, duration: 0.5) {
+        
+        animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: self.needleValueFromValue, toValue: needleValue*1.05, duration: 0.5) {
             self.animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: needleValue*1.05, toValue: needleValue*0.95, duration: 0.4, callBack: {
                 self.animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: needleValue*0.95, toValue: needleValue, duration: 0.6, callBack: {})
+                self.needleValueFromValue = needleValue*1.05
             })
         }
     }
@@ -224,7 +236,7 @@ public class ABGaugeView: UIView {
         spinAnimation1.fromValue = fromValue//radian(for: fromValue)
         spinAnimation1.toValue = toValue//radian(for: toValue)
         spinAnimation1.duration = duration
-        spinAnimation1.fillMode = kCAFillModeForwards
+        spinAnimation1.fillMode = CAMediaTimingFillMode.forwards
         spinAnimation1.isRemovedOnCompletion = false
         
         CATransaction.setCompletionBlock {
